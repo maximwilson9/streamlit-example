@@ -21,7 +21,7 @@ If you have any questions, checkout our [documentation](https://docs.streamlit.i
 forums](https://discuss.streamlit.io).
 In the meantime, below is an example of what you can do with just a few lines of code:
 """
-os.chdir('C:/Users/maxim.wilson/Documents/Projects/Facebook')
-fb_excel = 'FY22Q4_TestNoTest.xlsx'
+
+fb_excel = '2up_savings_messaging.xlsx'
 raw_fb = pd.read_excel(fb_excel,header=None,sheet_name='conversion metrics')
 st.write(raw_fb)
