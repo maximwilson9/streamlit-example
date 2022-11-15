@@ -9,3 +9,7 @@ import os
 from scipy.stats import beta
 import seaborn as sns
 import streamlit as st
+
+#Set Title
+st.title('Winning Probability App for Hulu Media Tests')
+
