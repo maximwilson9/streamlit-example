@@ -23,5 +23,5 @@ In the meantime, below is an example of what you can do with just a few lines of
 """
 
 fb_excel = '2up_savings_messaging.csv'
-raw_fb = pd.read.csv(fb_excel,header=None)
+raw_fb = pd.read_csv(fb_excel,header=None)
 st.write(raw_fb)
