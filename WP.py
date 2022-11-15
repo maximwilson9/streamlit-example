@@ -22,6 +22,6 @@ forums](https://discuss.streamlit.io).
 In the meantime, below is an example of what you can do with just a few lines of code:
 """
 
-fb_excel = '2up_savings_messaging.xlsx'
-raw_fb = pd.read_excel(fb_excel,header=None,sheet_name='conversion metrics')
+fb_excel = '2up_savings_messaging.csv'
+raw_fb = pd.read.csv(fb_excel,header=None)
 st.write(raw_fb)
