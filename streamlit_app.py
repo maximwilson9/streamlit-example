@@ -1,8 +1,15 @@
+#Import packages
 from collections import namedtuple
 import altair as alt
 import math
+import numpy as np
 import pandas as pd
 import streamlit as st
+
+#Set Working Directory
+os.chdir('/Users/maxim.wilson/Documents/Projects/Facebook')
+
+#
 
 """
 # Welcome to Streamlit!
