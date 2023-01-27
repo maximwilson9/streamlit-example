@@ -54,9 +54,9 @@ else:
 
 ##add a slider that allows the user to selet the number of simulations to run
 ##the key for the slider is num_simulations
-##the default value is 25000
+##the default value is 2000
 ##the minimum value is 1000 and the maximum value is 100000
-n_sims = st.slider('Select the number of simulations to run (more simulations will give more stable results, but takes longer):', 1000, 100000, 50000)
+n_sims = st.slider('Select the number of simulations to run (more simulations will give more stable results, but takes longer):', 1000, 100000, 2000)
 
 
 
