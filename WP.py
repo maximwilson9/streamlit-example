@@ -6,7 +6,7 @@ import altair as alt
 import numpy as np
 import pandas as pd
 import streamlit as st
-import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt
 from scipy.stats import beta
 import seaborn as sns
 
