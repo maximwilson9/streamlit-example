@@ -10,6 +10,9 @@ import matplotlib.pyplot as plt
 from scipy.stats import beta
 import seaborn as sns
 
+##set the page layout to wide
+st.set_page_config(layout="wide")
+
 #Set Title
 st.title('Winning Probability App for Evaluating Hulu Media Tests')
 
@@ -54,9 +57,9 @@ else:
 
 ##add a slider that allows the user to selet the number of simulations to run
 ##the key for the slider is num_simulations
-##the default value is 2000
+##the default value is 25000
 ##the minimum value is 1000 and the maximum value is 100000
-n_sims = st.slider('Select the number of simulations to run (more simulations will give more stable results, but takes longer):', 1000, 100000, 2000)
+n_sims = st.slider('Select the number of simulations to run (more simulations will give more stable results, but takes longer):', 1000, 100000, 5000)
 
 
 
@@ -166,18 +169,7 @@ topline_metrics['Metric Value'][1] = '$' + topline_metrics['Metric Value'][1]
 st.table(topline_metrics)
 
 
-###add subheader that displays the CPiS and incremental conversions by cell
-st.subheader('Incremental Conversions and Cost per Incremental Sign-up (CPiS) by Cell')
-##Add a table to the app that displays the CPiS by cell
-##The table has three columns: cell_name, conversions_incremental, and cpis
-##The table is sorted by cpis in ascending order
-##The table only has one row for each unique value in the cell_name column in df
-##The value of conversions_incremental is the value of the conversions_incremental column in df for 
-cpis_by_cell = pd.DataFrame({'cell_name': df['cell_name'], 'conversions_incremental': df['conversions_incremental'], 'cpis': df['cpis']})
-##round the cpis values to the nearest dollar
-cpis_by_cell['cpis'] = cpis_by_cell['cpis'].astype(int)
-##write the cpis_by_cell table to the app
-st.table(cpis_by_cell)
+
 
 
 ## reduce df to only the rows where the value of conversion_segment is in the list conversion_metrics
@@ -190,44 +182,8 @@ def conversion_segment_filter(x):
 ## apply the conversion_segment_filter function to the conversion_segment column in df
 df = df[df['conversion_segment'].apply(conversion_segment_filter)]
 
-###add subheader for the confidence intervals
-st.subheader('Confidence Intervals')
-
-#plot confidence intervals --> Copied directly from Google
-sns.set_style('darkgrid')
-
-# CIs for incremental conversions/absolute lift
-for obj in df['conversion_segment'].unique():
-    sub_df = df[(df['conversion_segment'])==obj]
-    # Set sns plot style back to 'poster' to make bars wide on plot
-    sns.set_context("poster")
-
-    fig, ax = plt.subplots(figsize=(10, 4))
-    ax.tick_params(axis='x', rotation=45, labelsize=12, pad=-10)
-    ax.tick_params(axis='y',labelsize=13)
-
-    plt.errorbar(x=np.array(sub_df['study_name']), 
-                 y=np.array(sub_df['absolute_lift']), 
-                 #yerr=np.array(list(zip(sub_df['absolutelift']-sub_df['absolutelift_CImin'],sub_df['absolutelift_CImax']-sub_df['absolute_lift']))).T,
-                 yerr=np.array(sub_df['absolutelift_CI']),
-                 fmt='o', ecolor='g', capthick=2)
-
-    # Set title & labels
-    ##plt.title('Incremental Buyers w/ 90% Confidence Intervals {y}',fontsize=15)
-    plt.title(obj,fontsize=15)
-    ax.set_ylabel("Incremental Conversions",fontsize=12)
-    ax.set_xlabel('', fontsize=12)
 
 
-    # Line to define zero on the y-axis
-    ax.axhline(y=0, linestyle='--', color='red', linewidth=1)
-    
-    ## set density number format to include comma separator
-    current_values = plt.gca().get_yticks()
-    plt.gca().set_yticklabels(['{:,.0f}'.format(x) for x in current_values])
-
-    plt.show()
-    st.write(fig)
 
 
 ## Reduce to only useful columns
@@ -244,9 +200,6 @@ useful_columns = ['analysis_date',
 
 metrics_df = df[useful_columns]
 
-## write the number of rows of metrics_df
-st.write(metrics_df.shape[0])
-
 ## reduce metrics_df to only the rows where the value of conversion_segment is in the list conversion_metrics
 ## write a function that returns True if the value of conversion_segment is in the list conversion_metrics
 def conversion_segment_filter(x):
@@ -256,9 +209,6 @@ def conversion_segment_filter(x):
         return False
 ## apply the conversion_segment_filter function to the conversion_segment column in metrics_df
 metrics_df = metrics_df[metrics_df['conversion_segment'].apply(conversion_segment_filter)]
-
-st.write(conversion_metrics)
-st.write(metrics_df.shape[0])
 
 ## set seed
 np.random.seed(seed = 1234)
@@ -349,13 +299,94 @@ for dt in results['dt'].unique():
         #sub_results['win_prob2'] = [(x + 0.0)/n_sims for x in wins2]
         win_prob_df = win_prob_df.append(sub_results)
 
-## Topline summary of cpis and win probability
-st.write(win_prob_df[['cell','metric','cpis','win_prob']])
 
 samples_df['lift_samples'] = samples_df['test_samples'] -samples_df['control_samples']
 samples_df['cpis_samples'] = samples_df['spend']/(samples_df['population_test'] * samples_df['lift_samples'] )
 
+
+###add subheader that displays topline results
+st.subheader('Winning Probability and CPiS by Cell')
+summary_table = win_prob_df[['dt', 'cell', 'metric', 'win_prob', 'cpis']]
+##change the name of the column win_prob to Winning Probability
+summary_table = summary_table.rename(columns = {'win_prob': 'Winning Probability'})
+##change the name of the column cpis to CPiS
+summary_table = summary_table.rename(columns = {'cpis': 'CPiS'})
+##Add a table to the app that displays the summary results
+##The table has the number of rows equal to the number of unique values metric column of summary_table
+##The table has the same number of columns as the twice the number of unique values in the cell column of summary_table
+##The first set of columns are named as the concatenation of the unique values of the cell column of summary_table and the string ' CPiS'
+##The second set of columns are named as the concatenation of the unique values of the cell column of summary_table and the string ' Win Probability'
+##The first set of columns are the values of the cpis column of summary_table for the corresponding metric and cell
+##The second set of columns are the values of the win_prob column of summary_table for the corresponding metric and cell
+##The table is sorted by the values of the metric column of summary_table in ascending order
+to_view = summary_table.pivot_table(index = 'metric', columns = 'cell', values = ['Winning Probability', 'CPiS'])
+## format the values in the win_prob columns in to_view to be percentages with one decimal place
+to_view['Winning Probability'] = to_view['Winning Probability'].applymap(lambda x: '{:.1%}'.format(x))
+##format the values in the cpis columns in to_view to be integers with a dollar sign and commas
+to_view['CPiS'] = to_view['CPiS'].applymap(lambda x: '${:,.0f}'.format(x))
+
+## add the table to the app
+st.dataframe(to_view)
+
+##The table is sorted by cpis in ascending order
+##The table only has one row for each unique value in the cell_name column in df
+##The table has three columns: cell_name, conversions_incremental, and cpis
+##The value of conversions_incremental is the value of the conversions_incremental column in df for 
+##cpis_by_cell = pd.DataFrame({'cell_name': df['cell_name'], 'conversions_incremental': df['conversions_incremental'], 'cpis': df['cpis']})
+##round the cpis values to the nearest dollar
+##cpis_by_cell['cpis'] = cpis_by_cell['cpis'].astype(int)
+##write the cpis_by_cell table to the app
+##st.table(cpis_by_cell)
+
+
+
+
+
+
+
+###add subheader for the confidence intervals
+st.subheader('Confidence Intervals')
+
+#plot confidence intervals --> Copied directly from Google
+sns.set_style('darkgrid')
+
+# CIs for incremental conversions/absolute lift
+for obj in df['conversion_segment'].unique():
+    sub_df = df[(df['conversion_segment'])==obj]
+    # Set sns plot style back to 'poster' to make bars wide on plot
+    sns.set_context("poster")
+
+    fig, ax = plt.subplots(figsize=(10, 4))
+    ax.tick_params(axis='x', rotation=45, labelsize=12, pad=-10)
+    ax.tick_params(axis='y',labelsize=13)
+
+    plt.errorbar(x=np.array(sub_df['study_name']), 
+                 y=np.array(sub_df['absolute_lift']), 
+                 #yerr=np.array(list(zip(sub_df['absolutelift']-sub_df['absolutelift_CImin'],sub_df['absolutelift_CImax']-sub_df['absolute_lift']))).T,
+                 yerr=np.array(sub_df['absolutelift_CI']),
+                 fmt='o', ecolor='g', capthick=2)
+
+    # Set title & labels
+    ##plt.title('Incremental Buyers w/ 90% Confidence Intervals {y}',fontsize=15)
+    plt.title(obj,fontsize=15)
+    ax.set_ylabel("Incremental Conversions",fontsize=12)
+    ax.set_xlabel('', fontsize=12)
+
+
+    # Line to define zero on the y-axis
+    ax.axhline(y=0, linestyle='--', color='red', linewidth=1)
+    
+    ## set density number format to include comma separator
+    current_values = plt.gca().get_yticks()
+    plt.gca().set_yticklabels(['{:,.0f}'.format(x) for x in current_values])
+
+    plt.show()
+    st.write(fig)
+
+
+
 ## Add density plots
+st.subheader('Density Plots')
 #### In a column
 
 sns.set()
@@ -388,5 +419,6 @@ plt.gca().set_yticklabels(['{:,.0f}'.format(x) for x in current_values])
 xx_values = plt.gca().get_xticks()
 ##plt.gca().set_xticklabels(['{:%.0f%%}'.format(x) for x in xx_values])
 
+fig2 = grid.fig
 ## write to streamlit
-st.pyplot()
+st.pyplot(fig2)
