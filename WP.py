@@ -11,7 +11,7 @@ from scipy.stats import beta
 import seaborn as sns
 
 ##set the page layout to wide
-st.set_page_config(layout="wide")
+
 
 #Set Title
 st.title('Winning Probability App for Evaluating Hulu Media Tests')
