@@ -10,8 +10,6 @@ import matplotlib.pyplot as plt
 from scipy.stats import beta
 import seaborn as sns
 
-##set the page layout to wide
-
 
 #Set Title
 st.title('Winning Probability App for Evaluating Hulu Media Tests')
@@ -59,6 +57,8 @@ else:
 ##the key for the slider is num_simulations
 ##the default value is 25000
 ##the minimum value is 1000 and the maximum value is 100000
+##display the number format as an integer with commas
+
 n_sims = st.slider('Select the number of simulations to run (more simulations will give more stable results, but takes longer):', 1000, 100000, 5000)
 
 
@@ -112,8 +112,9 @@ df['analysis_date']='2022-05-19'
 ## The conversion metrics are sorted in alphabetical order
 ## allow the user to select more than one conversion metric
 ## the key for the buttons is conversion_metrics
-## default is all the metrics are selected
-conversion_metrics = st.multiselect('Select conversion metrics to be analyzed:', sorted(df['objective_name'].unique()), sorted(df['objective_name'].unique()))
+## default is all that none are selected
+conversion_metrics = st.multiselect('Select conversion metrics to be analyzed:', sorted(df['objective_name'].unique()))
+#conversion_metrics = st.multiselect('Select conversion metrics to be analyzed:', sorted(df['objective_name'].unique()), sorted(df['objective_name'].unique()))
 
 
 ##add a subheader to the app that says 'Run Analysis'
@@ -121,14 +122,16 @@ st.subheader('Run Analysis')
 
 #if conversion_metrics, test_type, and fb_file are not empty, allow the user to click a button that says 'Run Analysis'
 ##otherwise, print 'Please select a conversion metric, test vendor, and upload a file'
+##only run the code below if the user clicks the 'Run Analysis' button
 if conversion_metrics and test_type and fb_file is not None:
-    st.button('Run Analysis')
+    if st.button('Run Analysis'): st.markdown('---')
+
+    else: st.stop()
 else:
     st.write('Please select a conversion metric, test vendor, and upload a file.')
+    ##stop the code from running below to prevent errors from displaying
+    st.stop()
 
-
-### add a  line to separate the next section of the app
-st.markdown('---')
 
 
 ##create a variable test_name that is the value of the first row in the study_name column in df
