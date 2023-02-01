@@ -61,7 +61,9 @@ else:
 
 n_sims = st.slider('Select the number of simulations to run (more simulations will give more stable results, but takes longer):', 1000, 100000, 5000)
 
-
+##stop the app until the user inputs the file
+if fb_file is None:
+    st.stop()
 
 #pivot data
 df = raw_fb.T
@@ -140,6 +142,9 @@ test_name = df['Test_name'][1]
 st.subheader('Test Name')
 st.write(test_name)
 
+##write the topline metrics to the app as a subheader
+st.subheader('Media Metrics')
+
 ###create a dataframe with topline metrics for the test
 ##call the dataframe topline_metrics
 ### The first column is the metric name, the second column is the metric value
@@ -150,8 +155,7 @@ st.write(test_name)
 topline_metrics = pd.DataFrame({'Metric Name': ['Number of Cells', 'Spend (USD)', 'Impressions', 'Reach'], 'Metric Value': [df['cell_name'].nunique(), df['spend'][df['objective_name']=='AddOnPurchase_Disney+ Add-On'].sum(), df['impressions'][df['objective_name']=='AddOnPurchase_Disney+ Add-On'].sum(), df['population_reached'][df['objective_name']=='AddOnPurchase_Disney+ Add-On'].sum()]})
 ## round down the metric values in topline_metrics to the nearest integer
 topline_metrics['Metric Value'] = topline_metrics['Metric Value'].astype(int)
-##write the topline metrics to the app as a subheader
-st.subheader('Media Metrics')
+
 
 # CSS to inject contained in a string
 hide_table_row_index = """
@@ -308,7 +312,9 @@ samples_df['cpis_samples'] = samples_df['spend']/(samples_df['population_test'] 
 
 
 ###add subheader that displays topline results
-st.subheader('Winning Probability and CPiS by Cell')
+## include a link for the word "winning probability" that links to the bottom of the page where "Explanation of Winning Probability" is displayed
+## include a link for the word "CPiS" that links to the bottom of the page where "Explanation of CPiS" is displayed
+st.subheader('[Winning Probability](https://docs.google.com/presentation/d/1pvENyzIFNAN6yQ3bEEPDUD4TyLhz00GJ_CZcX0WhCGA/edit) and [CPiS](https://docs.google.com/presentation/d/1pvENyzIFNAN6yQ3bEEPDUD4TyLhz00GJ_CZcX0WhCGA/edit) by Cell')
 summary_table = win_prob_df[['dt', 'cell', 'metric', 'win_prob', 'cpis']]
 ##change the name of the column win_prob to Winning Probability
 summary_table = summary_table.rename(columns = {'win_prob': 'Winning Probability'})
