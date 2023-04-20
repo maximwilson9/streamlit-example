@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 from scipy.stats import beta
 from scipy.stats import norm
 import seaborn as sns
-from fpdf import FPDF
 import base64
 
 
