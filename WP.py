@@ -1,6 +1,7 @@
 #Import packages
 import math
 import os
+import matplotlib
 from collections import namedtuple
 import altair as alt
 import numpy as np
@@ -10,6 +11,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import beta
 from scipy.stats import norm
 import seaborn as sns
+from fpdf import FPDF
 import base64
 
 
@@ -159,9 +161,15 @@ if test_type == 'The Trade Desk':
     ##add the z score to the dataframe
     df['z_score'] = norm.ppf(df['absolute_lift_confidence_level'])
     ##find the standard error of the absolute lift
+    #df['phat'] = (df['treatment_conversions']+df['control_conversions'])/(df['treatment_user_count']+df['control_user_count'])
+    #df['se']= df['phat']*(1-df['phat'])/ (df['treatment_user_count']+df['control_user_count'])
+    #df['standard_error'] =  (df['se']).sqrt()
     df['standard_error'] = df['absolute_lift']/df['z_score']
     ##create the absolute lift confidence interval column based on the standard error and the z score for 90% confidence
     df['absolutelift_CI'] = df['standard_error']*norm.ppf(0.90)
+    df['absolutelift_CI'] = df['absolutelift_CI'].abs()
+    ##df['absolutelift_CI'] = df['standard_error']*norm.ppf(0.90)
+
     ##legacy code for date
     df['analysis_date']='2022-05-19'
 
@@ -246,15 +254,17 @@ st.subheader('Media Metrics')
 if test_type == 'Facebook':
     ##create a dataframe called per_cell_metrics that
     ###group the data in df by the cell_name column
+    per_cell_metrics = df.groupby('cell_name')[['spend','impressions','population_reached']].mean()
     ##average the spend, impressions, and reach columns
-    per_cell_metrics = df.groupby('cell_name').mean()[['spend','impressions','population_reached']]
+    ##per_cell_metrics = df.groupby('cell_name').mean()[['spend','impressions','population_reached']]
 elif test_type == 'YouTube':
     ##create a dataframe called per_cell_metrics that
     ###group the data in df by the study_name column
     ##average the spend and reach columns
-    per_cell_metrics = df.groupby('study_name').mean()[['experiment_cost_usd','treatment_user_count']]
+    per_cell_metrics = df.groupby('cell_name')[['experiment_cost_usd','treatment_user_count']].mean()
+    ##per_cell_metrics = df.groupby('study_name').mean()[['experiment_cost_usd','treatment_user_count']]
 elif test_type == 'The Trade Desk':
-    per_cell_metrics = df.groupby('cell_name').mean()[['experiment_cost_usd','n_test']]    
+    per_cell_metrics = df.groupby('cell_name')[['experiment_cost_usd','n_test']].mean()
 
 
 ###create a dataframe with topline metrics for the test
@@ -407,7 +417,7 @@ for objective in metrics_df['conversion_segment'].unique():
                                    }, 
                                     index = [inc])
 
-            results = results.append(temp_df)
+            results = pd.concat([results,temp_df])
             inc+= 1
 
 
@@ -438,7 +448,7 @@ for dt in results['dt'].unique():
                                         'population_test': sub_results['population_test'][i],
                                         'test_samples': test, 
                                         'control_samples': ctl})
-            samples_df = samples_df.append(sub_samples)
+            samples_df = pd.concat([samples_df,sub_samples])
             sims[i] = test - ctl
             #sims2[i] = sims[i] * sub_results['population_test'][i]
             wins[i] = 0
@@ -449,7 +459,7 @@ for dt in results['dt'].unique():
             #wins2[np.argmax(sims2.loc[i,:])] += 1
         sub_results['win_prob'] = [(x + 0.0)/n_sims for x in wins]
         #sub_results['win_prob2'] = [(x + 0.0)/n_sims for x in wins2]
-        win_prob_df = win_prob_df.append(sub_results)
+        win_prob_df = pd.concat([win_prob_df,sub_results])
 
 
 samples_df['lift_samples'] = samples_df['test_samples'] -samples_df['control_samples']
